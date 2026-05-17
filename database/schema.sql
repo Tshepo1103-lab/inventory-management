@@ -1,0 +1,120 @@
+-- Imbizo Shisanyama Inventory — Reference Schema
+-- Generated from EF Core entities. Use migrations for actual deployment.
+
+CREATE TABLE Users (
+    Id UNIQUEIDENTIFIER PRIMARY KEY,
+    Email NVARCHAR(256) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(MAX) NOT NULL,
+    FullName NVARCHAR(200) NOT NULL,
+    Role INT NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL,
+    LastLoginAt DATETIME2 NULL
+);
+
+CREATE TABLE Suppliers (
+    Id UNIQUEIDENTIFIER PRIMARY KEY,
+    Name NVARCHAR(200) NOT NULL,
+    Phone NVARCHAR(50) NOT NULL,
+    Email NVARCHAR(256) NOT NULL,
+    Address NVARCHAR(500) NOT NULL,
+    ContactPerson NVARCHAR(200) NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL,
+    UpdatedAt DATETIME2 NULL,
+    IsDeleted BIT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE InventoryItems (
+    Id UNIQUEIDENTIFIER PRIMARY KEY,
+    Name NVARCHAR(200) NOT NULL,
+    Sku NVARCHAR(50) NOT NULL UNIQUE,
+    Barcode NVARCHAR(100) NULL,
+    Category INT NOT NULL,
+    Quantity DECIMAL(18,2) NOT NULL,
+    UnitType INT NOT NULL,
+    SupplierId UNIQUEIDENTIFIER NOT NULL REFERENCES Suppliers(Id),
+    CostPrice DECIMAL(18,2) NOT NULL,
+    SellingEstimate DECIMAL(18,2) NOT NULL,
+    MinimumThreshold DECIMAL(18,2) NOT NULL,
+    DateReceived DATETIME2 NULL,
+    ExpiryDate DATETIME2 NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL,
+    UpdatedAt DATETIME2 NULL,
+    IsDeleted BIT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE Deliveries (
+    Id UNIQUEIDENTIFIER PRIMARY KEY,
+    ReferenceNumber NVARCHAR(100) NOT NULL,
+    SupplierId UNIQUEIDENTIFIER NOT NULL REFERENCES Suppliers(Id),
+    DeliveryDate DATETIME2 NOT NULL,
+    Status INT NOT NULL,
+    DamagedNotes NVARCHAR(MAX) NULL,
+    InvoiceFilePath NVARCHAR(500) NULL,
+    ReceiverSignature NVARCHAR(200) NULL,
+    ManagerNotes NVARCHAR(MAX) NULL,
+    ReceivedByUserId UNIQUEIDENTIFIER NOT NULL REFERENCES Users(Id),
+    ApprovedByUserId UNIQUEIDENTIFIER NULL REFERENCES Users(Id),
+    ApprovedAt DATETIME2 NULL,
+    CreatedAt DATETIME2 NOT NULL,
+    UpdatedAt DATETIME2 NULL,
+    IsDeleted BIT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE DeliveryItems (
+    Id UNIQUEIDENTIFIER PRIMARY KEY,
+    DeliveryId UNIQUEIDENTIFIER NOT NULL REFERENCES Deliveries(Id),
+    InventoryItemId UNIQUEIDENTIFIER NOT NULL REFERENCES InventoryItems(Id),
+    QuantityDelivered DECIMAL(18,2) NOT NULL,
+    QuantityApproved DECIMAL(18,2) NOT NULL,
+    QuantityDamaged DECIMAL(18,2) NOT NULL,
+    Notes NVARCHAR(MAX) NULL,
+    IsApproved BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME2 NOT NULL,
+    UpdatedAt DATETIME2 NULL,
+    IsDeleted BIT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE StockMovements (
+    Id UNIQUEIDENTIFIER PRIMARY KEY,
+    InventoryItemId UNIQUEIDENTIFIER NOT NULL REFERENCES InventoryItems(Id),
+    MovementType INT NOT NULL,
+    Quantity DECIMAL(18,2) NOT NULL,
+    QuantityBefore DECIMAL(18,2) NOT NULL,
+    QuantityAfter DECIMAL(18,2) NOT NULL,
+    Reference NVARCHAR(200) NULL,
+    Notes NVARCHAR(MAX) NULL,
+    DeliveryId UNIQUEIDENTIFIER NULL REFERENCES Deliveries(Id),
+    PerformedByUserId UNIQUEIDENTIFIER NOT NULL REFERENCES Users(Id),
+    CreatedAt DATETIME2 NOT NULL,
+    UpdatedAt DATETIME2 NULL,
+    IsDeleted BIT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE Notifications (
+    Id UNIQUEIDENTIFIER PRIMARY KEY,
+    UserId UNIQUEIDENTIFIER NOT NULL REFERENCES Users(Id),
+    Type INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Message NVARCHAR(MAX) NOT NULL,
+    IsRead BIT NOT NULL DEFAULT 0,
+    Link NVARCHAR(500) NULL,
+    CreatedAt DATETIME2 NOT NULL,
+    UpdatedAt DATETIME2 NULL,
+    IsDeleted BIT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE AuditLogs (
+    Id UNIQUEIDENTIFIER PRIMARY KEY,
+    UserId UNIQUEIDENTIFIER NOT NULL REFERENCES Users(Id),
+    Action NVARCHAR(100) NOT NULL,
+    EntityType NVARCHAR(100) NOT NULL,
+    EntityId UNIQUEIDENTIFIER NULL,
+    Details NVARCHAR(MAX) NULL,
+    IpAddress NVARCHAR(50) NULL,
+    CreatedAt DATETIME2 NOT NULL,
+    UpdatedAt DATETIME2 NULL,
+    IsDeleted BIT NOT NULL DEFAULT 0
+);

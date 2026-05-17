@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Imbizo.Inventory.API/Imbizo.Inventory.API.csproj" />
+    <Project Path="src/Imbizo.Inventory.Application/Imbizo.Inventory.Application.csproj" />
+    <Project Path="src/Imbizo.Inventory.Domain/Imbizo.Inventory.Domain.csproj" />
+    <Project Path="src/Imbizo.Inventory.Infrastructure/Imbizo.Inventory.Infrastructure.csproj" />
+  </Folder>
+</Solution>
