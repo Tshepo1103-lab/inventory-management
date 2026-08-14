@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -13,11 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDate } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
+import { statusBadgeVariant, formatStatus } from "@/lib/labels";
 import { useState } from "react";
 
 export default function DeliveryDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const qc = useQueryClient();
   const canApprove = useAuthStore((s) => s.hasRole("Admin", "StoreManager"));
   const [managerNotes, setManagerNotes] = useState("");
@@ -30,21 +30,23 @@ export default function DeliveryDetailPage() {
   });
 
   const approve = useMutation({
-    mutationFn: (status: string) =>
+    mutationFn: (status: "Approved" | "PartiallyApproved" | "Rejected") =>
       api.post(`/deliveries/${id}/approve`, {
         status,
         managerNotes,
         items: delivery?.items.map((item) => ({
           deliveryItemId: item.id,
-          quantityApproved: approvals[item.id]?.qty ?? item.quantityDelivered,
-          isApproved: approvals[item.id]?.approved ?? true,
+          quantityApproved: status === "Rejected" ? 0 : (approvals[item.id]?.qty ?? item.quantityDelivered),
+          isApproved: status !== "Rejected",
         })),
       }),
-    onSuccess: () => {
-      toast.success("Delivery updated");
+    onSuccess: (_, status) => {
+      toast.success(status === "Rejected" ? "Delivery rejected" : "Inventory updated from this delivery");
       qc.invalidateQueries({ queryKey: ["delivery", id] });
       qc.invalidateQueries({ queryKey: ["deliveries"] });
-      router.push("/deliveries");
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["inventory"] });
+      qc.invalidateQueries({ queryKey: ["movements"] });
     },
     onError: () => toast.error("Approval failed"),
   });
@@ -60,8 +62,8 @@ export default function DeliveryDetailPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>{delivery.referenceNumber}</CardTitle>
-              <Badge variant={delivery.status === "Approved" ? "success" : delivery.status === "Pending" ? "warning" : "danger"}>
-                {delivery.status}
+              <Badge variant={statusBadgeVariant(delivery.status)}>
+                {formatStatus(delivery.status)}
               </Badge>
             </div>
           </CardHeader>
@@ -73,6 +75,7 @@ export default function DeliveryDetailPage() {
               <div><span className="text-muted-foreground">Signature</span><p className="font-medium">{delivery.receiverSignature}</p></div>
             </div>
             {delivery.damagedNotes && <p className="text-sm text-amber-400">Damaged notes: {delivery.damagedNotes}</p>}
+            {delivery.invoiceFilePath && <p className="text-sm text-muted-foreground">Invoice attached</p>}
 
             <table className="w-full text-sm border border-border rounded-lg overflow-hidden">
               <thead className="bg-muted/50">
@@ -105,11 +108,12 @@ export default function DeliveryDetailPage() {
           <Card>
             <CardHeader><CardTitle>Manager Approval</CardTitle></CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">Approving will add accepted quantities to live inventory.</p>
               <div className="space-y-2">
                 <Label>Manager Notes</Label>
                 <Input value={managerNotes} onChange={(e) => setManagerNotes(e.target.value)} placeholder="Optional notes" />
               </div>
-              <Button className="w-full" onClick={() => approve.mutate("Approved")} disabled={approve.isPending}>Approve All</Button>
+              <Button className="w-full" onClick={() => approve.mutate("Approved")} disabled={approve.isPending}>Approve</Button>
               <Button variant="outline" className="w-full" onClick={() => approve.mutate("PartiallyApproved")} disabled={approve.isPending}>Partial Approval</Button>
               <Button variant="destructive" className="w-full" onClick={() => approve.mutate("Rejected")} disabled={approve.isPending}>Reject</Button>
             </CardContent>

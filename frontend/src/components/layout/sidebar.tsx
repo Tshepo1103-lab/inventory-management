@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
+import { formatRole } from "@/lib/labels";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -34,7 +35,7 @@ export function Sidebar() {
     <aside className="flex h-full w-64 flex-col border-r border-border bg-card">
       <div className="flex flex-col items-center gap-2 border-b border-border px-4 py-6">
         <Image src="/logo-icon.png" alt="Imbizo" width={48} height={48} className="rounded-lg" />
-        <Image src="/logo-full.png" alt="Imbizo Shisanyama" width={160} height={40} className="object-contain" />
+        <Image src="/logo-full.png" alt="Imbizo Shisanyama" width={160} height={40} className="h-auto w-40 object-contain" />
         <p className="text-xs text-muted-foreground">Inventory Management</p>
       </div>
 
@@ -71,7 +72,7 @@ export function Sidebar() {
       <div className="border-t border-border p-4">
         <div className="mb-3 rounded-lg bg-muted/50 p-3">
           <p className="text-sm font-medium">{user?.fullName}</p>
-          <p className="text-xs text-muted-foreground">{user?.role}</p>
+          <p className="text-xs text-muted-foreground">{user?.role ? formatRole(user.role) : ""}</p>
         </div>
         <Button variant="outline" className="w-full" onClick={() => { logout(); window.location.href = "/login"; }}>
           <LogOut className="h-4 w-4" />

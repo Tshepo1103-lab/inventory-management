@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { LoginResponse, UserRole } from "@/lib/types";
+import { normalizeRole } from "@/lib/labels";
 
 interface AuthState {
   token: string | null;
@@ -25,7 +26,7 @@ export const useAuthStore = create<AuthState>()(
             userId: data.userId,
             email: data.email,
             fullName: data.fullName,
-            role: data.role,
+            role: normalizeRole(data.role),
           },
         });
       },

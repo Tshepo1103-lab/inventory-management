@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import api from "@/lib/api";
 import type { InventoryItem, PagedResult, Supplier } from "@/lib/types";
 import { AppShell } from "@/components/layout/app-shell";
@@ -42,6 +43,7 @@ export default function NewDeliveryPage() {
     queryFn: async () => (await api.get<PagedResult<InventoryItem>>("/inventory", { params: { pageSize: 200 } })).data,
   });
 
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
   const { register, control, handleSubmit, formState: { isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -55,7 +57,12 @@ export default function NewDeliveryPage() {
   const onSubmit = async (data: FormData) => {
     try {
       const res = await api.post("/deliveries", data);
-      toast.success("Delivery submitted for approval");
+      if (invoiceFile) {
+        const form = new FormData();
+        form.append("file", invoiceFile);
+        await api.post(`/deliveries/${res.data.id}/invoice`, form);
+      }
+      toast.success("Delivery submitted for manager approval");
       router.push(`/deliveries/${res.data.id}`);
     } catch {
       toast.error("Failed to create delivery");
@@ -91,6 +98,10 @@ export default function NewDeliveryPage() {
               <Label>Damaged Stock Notes</Label>
               <Input {...register("damagedNotes")} placeholder="Optional notes about damaged items" />
             </div>
+            <div className="md:col-span-2 space-y-2">
+              <Label>Invoice / delivery note (optional)</Label>
+              <Input type="file" accept="image/*,.pdf" onChange={(e) => setInvoiceFile(e.target.files?.[0] ?? null)} />
+            </div>
           </CardContent>
         </Card>
 
@@ -113,12 +124,12 @@ export default function NewDeliveryPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Qty Delivered</Label>
-                  <Input type="number" step="0.01" {...register(`items.${index}.quantityDelivered`)} />
+                  <Input type="number" step="0.01" {...register(`items.${index}.quantityDelivered`, { valueAsNumber: true })} />
                 </div>
                 <div className="flex items-end gap-2">
                   <div className="flex-1 space-y-2">
                     <Label>Qty Damaged</Label>
-                    <Input type="number" step="0.01" {...register(`items.${index}.quantityDamaged`)} />
+                    <Input type="number" step="0.01" {...register(`items.${index}.quantityDamaged`, { valueAsNumber: true })} />
                   </div>
                   {fields.length > 1 && (
                     <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>

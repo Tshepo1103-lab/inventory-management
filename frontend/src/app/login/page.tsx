@@ -21,9 +21,10 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const demoAccounts = [
+  { email: "receiver@imbizo.co.za", password: "Receiver@123", role: "Receiver (capture delivery)" },
+  { email: "manager@imbizo.co.za", password: "Manager@123", role: "Store Manager (approve)" },
+  { email: "kitchen@imbizo.co.za", password: "Kitchen@123", role: "Kitchen Manager (usage)" },
   { email: "admin@imbizo.co.za", password: "Admin@123", role: "Admin" },
-  { email: "manager@imbizo.co.za", password: "Manager@123", role: "Store Manager" },
-  { email: "receiver@imbizo.co.za", password: "Receiver@123", role: "Receiver" },
 ];
 
 export default function LoginPage() {
@@ -31,7 +32,7 @@ export default function LoginPage() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "manager@imbizo.co.za", password: "Manager@123" },
+    defaultValues: { email: "receiver@imbizo.co.za", password: "Receiver@123" },
   });
 
   const onSubmit = async (data: FormData) => {

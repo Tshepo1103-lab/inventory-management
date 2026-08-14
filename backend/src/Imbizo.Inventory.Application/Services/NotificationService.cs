@@ -25,7 +25,16 @@ public class NotificationService(IApplicationDbContext db) : INotificationServic
         return await query
             .OrderByDescending(n => n.CreatedAt)
             .Take(50)
-            .Select(n => new NotificationDto(n.Id, n.Type, n.Title, n.Message, n.IsRead, n.Link, n.CreatedAt))
+            .Select(n => new NotificationDto
+            {
+                Id = n.Id,
+                Type = n.Type,
+                Title = n.Title,
+                Message = n.Message,
+                IsRead = n.IsRead,
+                Link = n.Link,
+                CreatedAt = n.CreatedAt
+            })
             .ToListAsync(ct);
     }
 

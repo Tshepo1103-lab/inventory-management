@@ -13,9 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
-
-const statusVariant = (s: string) =>
-  s === "Approved" ? "success" : s === "Pending" ? "warning" : s === "Rejected" ? "danger" : "secondary";
+import { statusBadgeVariant, formatStatus } from "@/lib/labels";
 
 function DeliveriesContent() {
   const params = useSearchParams();
@@ -56,6 +54,9 @@ function DeliveriesContent() {
               </thead>
               <tbody>
                 {isLoading && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Loading...</td></tr>}
+                {!isLoading && data?.items.length === 0 && (
+                  <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No deliveries found.</td></tr>
+                )}
                 {data?.items.map((d) => (
                   <tr key={d.id} className="border-t border-border hover:bg-muted/30">
                     <td className="p-3 font-medium">{d.referenceNumber}</td>
@@ -63,7 +64,7 @@ function DeliveriesContent() {
                     <td className="p-3">{formatDate(d.deliveryDate)}</td>
                     <td className="p-3">{d.receivedByName}</td>
                     <td className="p-3">{d.items.length}</td>
-                    <td className="p-3"><Badge variant={statusVariant(d.status)}>{d.status}</Badge></td>
+                    <td className="p-3"><Badge variant={statusBadgeVariant(d.status)}>{formatStatus(d.status)}</Badge></td>
                     <td className="p-3">
                       <Link href={`/deliveries/${d.id}`} className="text-gold hover:underline text-sm">View</Link>
                     </td>

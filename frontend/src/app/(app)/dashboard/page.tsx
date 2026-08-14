@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCategory, statusBadgeVariant, formatStatus } from "@/lib/labels";
 
 const COLORS = ["#D4AF37", "#F9E4B7", "#B8860B", "#C5A059", "#8B7355", "#5C4A1F", "#2A2112"];
 
@@ -40,7 +41,7 @@ export default function DashboardPage() {
   });
 
   const chartData = data?.categorySummaries.map((c) => ({
-    name: c.category.replace(/([A-Z])/g, " $1").trim(),
+    name: formatCategory(c.category),
     value: c.totalValue,
   })) ?? [];
 
@@ -137,8 +138,8 @@ export default function DashboardPage() {
                       <p className="font-medium">{d.referenceNumber}</p>
                       <p className="text-xs text-muted-foreground">{d.supplierName} · {formatDate(d.deliveryDate)}</p>
                     </div>
-                    <Badge variant={d.status === "Pending" ? "warning" : d.status === "Approved" ? "success" : "danger"}>
-                      {d.status}
+                    <Badge variant={statusBadgeVariant(d.status)}>
+                      {formatStatus(d.status)}
                     </Badge>
                   </Link>
                 ))}

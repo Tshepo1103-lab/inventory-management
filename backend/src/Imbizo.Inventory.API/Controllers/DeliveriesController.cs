@@ -57,6 +57,8 @@ public class DeliveriesController(
         await using var stream = System.IO.File.Create(filePath);
         await file.CopyToAsync(stream, ct);
 
-        return Ok(new { path = $"/uploads/invoices/{fileName}" });
+        var relativePath = $"/uploads/invoices/{fileName}";
+        await service.AttachInvoiceAsync(id, relativePath, ct);
+        return Ok(new { path = relativePath });
     }
 }

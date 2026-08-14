@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
+import { formatCategory } from "@/lib/labels";
 
 export default function InventoryPage() {
   const [search, setSearch] = useState("");
@@ -60,7 +61,7 @@ export default function InventoryPage() {
                   <tr key={item.id} className="border-t border-border hover:bg-muted/30">
                     <td className="p-3 font-medium">{item.name}</td>
                     <td className="p-3 text-muted-foreground">{item.sku}</td>
-                    <td className="p-3">{item.category}</td>
+                    <td className="p-3">{formatCategory(item.category)}</td>
                     <td className="p-3">{item.quantity}</td>
                     <td className="p-3">{item.unitType}</td>
                     <td className="p-3">{formatCurrency(item.costPrice)}</td>

@@ -2,23 +2,25 @@ using Imbizo.Inventory.Domain.Enums;
 
 namespace Imbizo.Inventory.Application.DTOs;
 
-public record InventoryItemDto(
-    Guid Id,
-    string Name,
-    string Sku,
-    string? Barcode,
-    InventoryCategory Category,
-    decimal Quantity,
-    UnitType UnitType,
-    Guid SupplierId,
-    string SupplierName,
-    decimal CostPrice,
-    decimal SellingEstimate,
-    decimal MinimumThreshold,
-    DateTime? DateReceived,
-    DateTime? ExpiryDate,
-    bool IsActive,
-    bool IsLowStock);
+public class InventoryItemDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Sku { get; set; } = string.Empty;
+    public string? Barcode { get; set; }
+    public InventoryCategory Category { get; set; }
+    public decimal Quantity { get; set; }
+    public UnitType UnitType { get; set; }
+    public Guid SupplierId { get; set; }
+    public string SupplierName { get; set; } = string.Empty;
+    public decimal CostPrice { get; set; }
+    public decimal SellingEstimate { get; set; }
+    public decimal MinimumThreshold { get; set; }
+    public DateTime? DateReceived { get; set; }
+    public DateTime? ExpiryDate { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsLowStock { get; set; }
+}
 
 public record CreateInventoryItemRequest(
     string Name,
@@ -72,33 +74,37 @@ public record UpdateSupplierRequest(
     string ContactPerson,
     bool IsActive);
 
-public record DeliveryItemDto(
-    Guid Id,
-    Guid InventoryItemId,
-    string ItemName,
-    string Sku,
-    decimal QuantityDelivered,
-    decimal QuantityApproved,
-    decimal QuantityDamaged,
-    string? Notes,
-    bool IsApproved);
+public class DeliveryItemDto
+{
+    public Guid Id { get; set; }
+    public Guid InventoryItemId { get; set; }
+    public string ItemName { get; set; } = string.Empty;
+    public string Sku { get; set; } = string.Empty;
+    public decimal QuantityDelivered { get; set; }
+    public decimal QuantityApproved { get; set; }
+    public decimal QuantityDamaged { get; set; }
+    public string? Notes { get; set; }
+    public bool IsApproved { get; set; }
+}
 
-public record DeliveryDto(
-    Guid Id,
-    string ReferenceNumber,
-    Guid SupplierId,
-    string SupplierName,
-    DateTime DeliveryDate,
-    DeliveryStatus Status,
-    string? DamagedNotes,
-    string? InvoiceFilePath,
-    string? ReceiverSignature,
-    string? ManagerNotes,
-    string ReceivedByName,
-    string? ApprovedByName,
-    DateTime? ApprovedAt,
-    DateTime CreatedAt,
-    IReadOnlyList<DeliveryItemDto> Items);
+public class DeliveryDto
+{
+    public Guid Id { get; set; }
+    public string ReferenceNumber { get; set; } = string.Empty;
+    public Guid SupplierId { get; set; }
+    public string SupplierName { get; set; } = string.Empty;
+    public DateTime DeliveryDate { get; set; }
+    public DeliveryStatus Status { get; set; }
+    public string? DamagedNotes { get; set; }
+    public string? InvoiceFilePath { get; set; }
+    public string? ReceiverSignature { get; set; }
+    public string? ManagerNotes { get; set; }
+    public string ReceivedByName { get; set; } = string.Empty;
+    public string? ApprovedByName { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public List<DeliveryItemDto> Items { get; set; } = [];
+}
 
 public record CreateDeliveryItemRequest(
     Guid InventoryItemId,
@@ -124,18 +130,20 @@ public record ApproveDeliveryItemRequest(
     decimal QuantityApproved,
     bool IsApproved);
 
-public record StockMovementDto(
-    Guid Id,
-    Guid InventoryItemId,
-    string ItemName,
-    StockMovementType MovementType,
-    decimal Quantity,
-    decimal QuantityBefore,
-    decimal QuantityAfter,
-    string? Reference,
-    string? Notes,
-    string PerformedByName,
-    DateTime CreatedAt);
+public class StockMovementDto
+{
+    public Guid Id { get; set; }
+    public Guid InventoryItemId { get; set; }
+    public string ItemName { get; set; } = string.Empty;
+    public StockMovementType MovementType { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal QuantityBefore { get; set; }
+    public decimal QuantityAfter { get; set; }
+    public string? Reference { get; set; }
+    public string? Notes { get; set; }
+    public string PerformedByName { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
 
 public record CreateStockMovementRequest(
     Guid InventoryItemId,
@@ -143,14 +151,16 @@ public record CreateStockMovementRequest(
     decimal Quantity,
     string? Notes);
 
-public record NotificationDto(
-    Guid Id,
-    NotificationType Type,
-    string Title,
-    string Message,
-    bool IsRead,
-    string? Link,
-    DateTime CreatedAt);
+public class NotificationDto
+{
+    public Guid Id { get; set; }
+    public NotificationType Type { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public bool IsRead { get; set; }
+    public string? Link { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
 
 public record DashboardDto(
     decimal TotalInventoryValue,

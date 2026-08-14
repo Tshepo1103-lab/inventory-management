@@ -14,7 +14,7 @@ public interface IDeliveryService
     Task<DeliveryDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<DeliveryDto> CreateAsync(CreateDeliveryRequest request, CancellationToken ct = default);
     Task<DeliveryDto?> ApproveAsync(Guid id, ApproveDeliveryRequest request, CancellationToken ct = default);
-    Task<string?> UploadInvoiceAsync(Guid id, Stream fileStream, string fileName, CancellationToken ct = default);
+    Task AttachInvoiceAsync(Guid id, string relativePath, CancellationToken ct = default);
 }
 
 public class DeliveryService(
@@ -162,10 +162,13 @@ public class DeliveryService(
         return mapper.Map<DeliveryDto>(delivery);
     }
 
-    public Task<string?> UploadInvoiceAsync(Guid id, Stream fileStream, string fileName, CancellationToken ct = default)
+    public async Task AttachInvoiceAsync(Guid id, string relativePath, CancellationToken ct = default)
     {
-        // Handled in API layer with file storage
-        return Task.FromResult<string?>(null);
+        var delivery = await db.Deliveries.FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, ct);
+        if (delivery is null) return;
+        delivery.InvoiceFilePath = relativePath;
+        delivery.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
     }
 
     private IQueryable<Delivery> GetDeliveryQuery() =>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Printer } from "lucide-react";
 import api from "@/lib/api";
 import type { ReportSummary } from "@/lib/types";
 import { AppShell } from "@/components/layout/app-shell";
@@ -17,6 +17,13 @@ const reports = [
   { key: "wastage", label: "Wastage Report", endpoint: "/reports/wastage" },
 ];
 
+function toCsv(rows: Record<string, unknown>[]) {
+  if (!rows.length) return "";
+  const headers = Object.keys(rows[0]);
+  const escape = (v: unknown) => `"${String(v ?? "").replaceAll('"', '""')}"`;
+  return [headers.join(","), ...rows.map((row) => headers.map((h) => escape(row[h])).join(","))].join("\n");
+}
+
 function ReportCard({ endpoint, label }: { endpoint: string; label: string }) {
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["report", endpoint],
@@ -24,14 +31,23 @@ function ReportCard({ endpoint, label }: { endpoint: string; label: string }) {
     enabled: false,
   });
 
-  const exportJson = () => {
-    if (!data) return;
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const rows = Array.isArray(data?.data) ? (data.data as Record<string, unknown>[]) : [];
+
+  const exportCsv = () => {
+    const blob = new Blob([toCsv(rows)], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${label.replace(/\s/g, "-").toLowerCase()}.json`;
+    a.download = `${label.replace(/\s/g, "-").toLowerCase()}.csv`;
     a.click();
+  };
+
+  const printReport = () => {
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(`<title>${label}</title><h1>${label}</h1><pre>${JSON.stringify(rows, null, 2)}</pre>`);
+    win.document.close();
+    win.print();
   };
 
   return (
@@ -42,17 +58,37 @@ function ReportCard({ endpoint, label }: { endpoint: string; label: string }) {
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             {isFetching ? "Loading..." : "Generate"}
           </Button>
-          {data && (
-            <Button variant="ghost" size="sm" onClick={exportJson}>
-              <Download className="h-4 w-4" />
-            </Button>
+          {rows.length > 0 && (
+            <>
+              <Button variant="ghost" size="sm" onClick={exportCsv}><Download className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="sm" onClick={printReport}><Printer className="h-4 w-4" /></Button>
+            </>
           )}
         </div>
       </CardHeader>
       {data && (
         <CardContent>
-          <p className="text-xs text-muted-foreground mb-2">Generated {formatDate(data.generatedAt)} · {Array.isArray(data.data) ? data.data.length : 0} records</p>
-          <pre className="max-h-48 overflow-auto rounded-lg bg-muted p-3 text-xs">{JSON.stringify(data.data, null, 2).slice(0, 1500)}...</pre>
+          <p className="text-xs text-muted-foreground mb-2">Generated {formatDate(data.generatedAt)} · {rows.length} records</p>
+          {rows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No records for this report.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full text-xs">
+                <thead className="bg-muted/50">
+                  <tr>
+                    {Object.keys(rows[0]).map((key) => <th key={key} className="p-2 text-left">{key}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.slice(0, 8).map((row, i) => (
+                    <tr key={i} className="border-t border-border">
+                      {Object.keys(rows[0]).map((key) => <td key={key} className="p-2">{String(row[key] ?? "")}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       )}
     </Card>
@@ -62,7 +98,7 @@ function ReportCard({ endpoint, label }: { endpoint: string; label: string }) {
 export default function ReportsPage() {
   return (
     <AppShell title="Reports & Analytics">
-      <p className="mb-6 text-muted-foreground">Generate and export inventory reports for operations and auditing.</p>
+      <p className="mb-6 text-muted-foreground">Generate printable operations reports. Export as CSV for Excel.</p>
       <div className="grid gap-4 md:grid-cols-2">
         {reports.map((r) => <ReportCard key={r.key} endpoint={r.endpoint} label={r.label} />)}
       </div>
